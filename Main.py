@@ -45,3 +45,6 @@ if __name__ == '__main__':
     directoris = arg.load.split(",")
     main(directoris)
     check.new_predict()
+    os.remove("logs.txt")
+    os.remove('readable_files.txt')
+    os.remove('create_number.txt')
