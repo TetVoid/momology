@@ -59,7 +59,7 @@ class Dicom_convector_jpg:
 
     def __draw_lines__(self, object_list):
         template = numpy.zeros((self.rows, self.cols), numpy.uint8)
-        # template = cv2.cvtColor(blank_img, cv2.COLOR_GRAY2BGR)
+        #template = cv2.cvtColor(template, cv2.COLOR_GRAY2BGR)
         for i in range(0, len(object_list)):
             if object_list[i].graphic_type == 'ELLIPSE':
                 data = object_list[i].graphic_data
@@ -259,14 +259,21 @@ class Dicom_convector_jpg:
 
         left_counter, right_counter, top_counter, bottom_counter = self.__cut__(New_Img)
 
+        size_coff = (self.cols - left_counter - right_counter)/512
         New_Img = cv2.cvtColor(New_Img, cv2.COLOR_GRAY2BGR)
-        cv2.imwrite(self.origin_folder + '/' + str(number) + '.jpg', New_Img[top_counter:self.rows-bottom_counter, left_counter:self.cols-right_counter])
+        New_Img = New_Img[top_counter:self.rows-bottom_counter, left_counter:self.cols-right_counter]
+        new_size = (int(New_Img.shape[1]/size_coff), int(New_Img.shape[0]/size_coff))
+        New_Img = cv2.resize(New_Img, new_size, interpolation=cv2.INTER_AREA)
+        cv2.imwrite(self.origin_folder + '/' + str(number) + '.jpg', New_Img)
 
         template = self.__draw_lines__(object_list)
-        cv2.imwrite(self.template_folder + '/' + str(number) + '.jpg', template[top_counter:self.rows-bottom_counter, left_counter:self.cols-right_counter])
+        template = template[top_counter:self.rows-bottom_counter, left_counter:self.cols-right_counter]
+        template_new_size = (int(template.shape[1]/size_coff), int(template.shape[0]/size_coff))
+        template = cv2.resize(template, template_new_size, interpolation=cv2.INTER_AREA)
+        cv2.imwrite(self.template_folder + '/' + str(number) + '.jpg', template)
 
         log = open('logs.txt', 'a')
-        log.write(str(number)+'.jpg'+" "+str(top_counter)+" " + str(bottom_counter)+" "+str(left_counter)+" " + str(right_counter)+"\n")
+        log.write(str(number)+'.jpg'+" "+str(top_counter)+" " + str(bottom_counter)+" "+str(left_counter)+" " + str(right_counter)+" "+str(size_coff)+"\n")
         log.close()
         shared_pixels.close()
         shared_pixels.unlink()

@@ -12,7 +12,6 @@ from tqdm import tqdm
 from eval import eval_net
 from unet import UNet
 
-from torch.utils.tensorboard import SummaryWriter
 from utils.dataset import BasicDataset
 from torch.utils.data import DataLoader, random_split
 
@@ -34,10 +33,10 @@ def train_net(net,
     n_val = int(len(dataset) * val_percent)
     n_train = len(dataset) - n_val
     train, val = random_split(dataset, [n_train, n_val])
+
     train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
     val_loader = DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True, drop_last=True)
 
-    writer = SummaryWriter(comment=f'LR_{lr}_BS_{batch_size}_SCALE_{img_scale}')
     global_step = 0
 
     logging.info(f'''Starting training:
@@ -78,7 +77,6 @@ def train_net(net,
                 masks_pred = net(imgs)
                 loss = criterion(masks_pred, true_masks)
                 epoch_loss += loss.item()
-                writer.add_scalar('Loss/train', loss.item(), global_step)
 
                 pbar.set_postfix(**{'loss (batch)': loss.item()})
 
@@ -90,25 +88,14 @@ def train_net(net,
                 pbar.update(imgs.shape[0])
                 global_step += 1
                 if global_step % (n_train // (10 * batch_size)) == 0:
-                    for tag, value in net.named_parameters():
-                        tag = tag.replace('.', '/')
-                        writer.add_histogram('weights/' + tag, value.data.cpu().numpy(), global_step)
-                        writer.add_histogram('grads/' + tag, value.grad.data.cpu().numpy(), global_step)
+
                     val_score = eval_net(net, val_loader, device)
                     scheduler.step(val_score)
-                    writer.add_scalar('learning_rate', optimizer.param_groups[0]['lr'], global_step)
 
                     if net.n_classes > 1:
                         logging.info('Validation cross entropy: {}'.format(val_score))
-                        writer.add_scalar('Loss/test', val_score, global_step)
                     else:
                         logging.info('Validation Dice Coeff: {}'.format(val_score))
-                        writer.add_scalar('Dice/test', val_score, global_step)
-
-                    writer.add_images('images', imgs, global_step)
-                    if net.n_classes == 1:
-                        writer.add_images('masks/true', true_masks, global_step)
-                        writer.add_images('masks/pred', torch.sigmoid(masks_pred) > 0.5, global_step)
 
         if save_cp:
             try:
@@ -120,7 +107,6 @@ def train_net(net,
                        dir_checkpoint + f'CP_epoch{epoch + 1}.pth')
             logging.info(f'Checkpoint {epoch + 1} saved !')
 
-    writer.close()
 
 
 def get_args():

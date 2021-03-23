@@ -26,27 +26,25 @@ def get_polyline(Image):
     for i in range(0, Image.size[1]):
         for j in range(0, Image.size[0]):
             if pix[j, i] > 25:
-                points.append((j, i))
+                points.append((i, j))
                 break
 
     for i in range(0, Image.size[1]):
         for j in range(0, Image.size[0]):
             if pix[Image.size[0]-j-1, Image.size[1]-i-1] > 25:
-                points.append((Image.size[0]-j-1, Image.size[1]-i-1))
+                points.append((Image.size[1]-i-1, Image.size[0]-j-1))
                 break
     return points
 
 
-
-if __name__ == '__main__':
-    predict_mask_folder = "data/predicted_masks/"
-    mask_folder = "data/masks/"
+def calculate_error():
+    predict_mask_folder = "Unet/data/predicted_masks/"
+    mask_folder = "Unet/data/masks/"
 
     predict_mask_points = []
     mask_points = []
 
     for i in os.listdir(predict_mask_folder):
-        print(predict_mask_folder + i)
         image1 = Image.open(predict_mask_folder + i)
         image2 = Image.open(mask_folder + i)
 
@@ -54,7 +52,6 @@ if __name__ == '__main__':
         if result != "error":
             predict_mask_points.append(result)
             mask_points.append(barycenter(image2))
-
 
     sum = 0
     for i in range(len(mask_points)):
@@ -64,5 +61,50 @@ if __name__ == '__main__':
 
     print(sum / len(mask_points))
 
-    for i in os.listdir("data/imgs/"):
-        os.system("python predict.py -i data/imgs/" + i + " -o data/predicted_masks/" + i)
+
+def new_predict():
+    for i in os.listdir("Unet/data/imgs/"):
+        os.system("python Unet/predict.py -i Unet/data/imgs/" + i + " -o Unet/data/predicted_masks/" + i)
+
+    predict_mask_folder = "Unet/data/predicted_masks/"
+
+    log = open("logs.txt", "r")
+    information_for_cords = []
+    for line in log:
+        line = line.replace('\n', '')
+        line = line.split(" ")
+        information_for_cords.append(line)
+
+    info = None
+    for i in os.listdir(predict_mask_folder):
+        for j in information_for_cords:
+            if j[0] == i:
+                info = j
+        image1 = Image.open(predict_mask_folder + i)
+        result = barycenter(image1)
+        if result != "error":
+            Y = (result[0]*float(info[5])+int(info[3]))/(
+                    image1.size[1]*float(info[5])+int(info[3])+int(info[4]))
+            X = (result[1]*float(info[5])+int(info[1]))/(
+                    image1.size[0]*float(info[5])+int(info[1])+int(info[2]))
+
+            result = (Y, X)
+            poly_line = get_polyline(image1)
+            new_poly_line = []
+            for j in poly_line:
+                Y = (j[0] * float(info[5]) + int(info[3])) / (
+                            image1.size[1]*float(info[5]) + int(info[3]) + int(info[4]))
+                X = (j[1] * float(info[5]) + int(info[1])) / (
+                            image1.size[0]*float(info[5]) + int(info[1]) + int(info[2]))
+
+                new_poly_line.append((Y, X))
+            if os.path.exists("Unet/data/barry_center_poly_line.txt") is False:
+                result_file = open("Unet/data/barry_center_poly_line.txt", "w")
+            else:
+                result_file = open("Unet/data/barry_center_poly_line.txt", "a")
+            result_file.write(str(i)+" "+str(result[0])+" "+str(result[1]))
+
+            for j in new_poly_line:
+                result_file.write(str(j[0])+" "+str(j[1])+" ")
+            result_file.write('\n')
+            result_file.close()

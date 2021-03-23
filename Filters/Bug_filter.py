@@ -10,5 +10,6 @@ class Bug_filter(Filter.Filter):
         for j in range(0, len(text_objects.value)):
             if text_objects[j].get(0x00700295).value != graphic_objects[j].get(0x00700295).value:
                 flag = False
+                print("cords_bug")
 
         return flag

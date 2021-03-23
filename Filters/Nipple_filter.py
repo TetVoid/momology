@@ -11,5 +11,6 @@ class Nipple_filter(Filter.Filter):
             name = text_objects[j].get(0x00700006).value[:-2]
             if name == '<тип=сосок/>':
                 flag = True
-
+        if not flag:
+            print("No nipple markings")
         return flag

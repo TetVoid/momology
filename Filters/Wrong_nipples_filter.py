@@ -61,5 +61,6 @@ class Wrong_nipples_filter(Filter.Filter):
                     flag = True
                     break
 
-
+        if not flag:
+            print("Nipple in wrong place")
         return flag
