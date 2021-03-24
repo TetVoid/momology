@@ -201,9 +201,6 @@ class Dicom_convector_jpg:
 
     def get_image(self, number):
         DCM_Img = pydicom.read_file(self.Path)
-        if DCM_Img.get(0x00700001) is None:
-            print(self.Path)
-            return None
 
         self.rows = DCM_Img.get(0x00280010).value  # Get number of rows from tag (0028, 0010)
         self.cols = DCM_Img.get(0x00280011).value  # Get number of cols from tag (0028, 0011)
@@ -228,7 +225,7 @@ class Dicom_convector_jpg:
 
         origin = numpy.zeros((self.rows, self.cols), numpy.uint8)
         Pixels = DCM_Img.pixel_array
-        object_list = self.__get_items__(DCM_Img)
+        #object_list = self.__get_items__(DCM_Img)
 
         cpu_number = os.cpu_count()-1
         if self.rows % cpu_number != 0:
@@ -266,11 +263,11 @@ class Dicom_convector_jpg:
         New_Img = cv2.resize(New_Img, new_size, interpolation=cv2.INTER_AREA)
         cv2.imwrite(self.origin_folder + '/' + str(number) + '.jpg', New_Img)
 
-        template = self.__draw_lines__(object_list)
-        template = template[top_counter:self.rows-bottom_counter, left_counter:self.cols-right_counter]
-        template_new_size = (int(template.shape[1]/size_coff), int(template.shape[0]/size_coff))
-        template = cv2.resize(template, template_new_size, interpolation=cv2.INTER_AREA)
-        cv2.imwrite(self.template_folder + '/' + str(number) + '.jpg', template)
+        #template = self.__draw_lines__(object_list)
+        #template = template[top_counter:self.rows-bottom_counter, left_counter:self.cols-right_counter]
+        #template_new_size = (int(template.shape[1]/size_coff), int(template.shape[0]/size_coff))
+        #template = cv2.resize(template, template_new_size, interpolation=cv2.INTER_AREA)
+        #cv2.imwrite(self.template_folder + '/' + str(number) + '.jpg', template)
 
         log = open('logs.txt', 'a')
         log.write(str(number)+'.jpg'+" "+str(top_counter)+" " + str(bottom_counter)+" "+str(left_counter)+" " + str(right_counter)+" "+str(size_coff)+"\n")
