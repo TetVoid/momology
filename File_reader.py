@@ -8,7 +8,7 @@ class File_reader:
     def __get_all_path__(self, Path, level=0):
         new_path = []
         returned = True
-        start = 2
+        start = 0
 
         if level > 0:
             start = 0
@@ -45,16 +45,16 @@ class File_reader:
         else:
             Input_Folder = directories
             new_path = self.__get_all_path__(Input_Folder)
-            print(len(new_path))
+            #print(len(new_path))
 
             validator = Validator.Validator()
-            validator.add_filter(Graphic_annotation_filter.Graphic_annotation_filter())
-            validator.add_filter(Bug_filter.Bug_filter())
-            validator.add_filter(Nipple_filter.Nipple_filter())
-            validator.add_filter(Wrong_nipples_filter.Wrong_nipples_filter())
+            #validator.add_filter(Graphic_annotation_filter.Graphic_annotation_filter())
+            #validator.add_filter(Bug_filter.Bug_filter())
+            #validator.add_filter(Nipple_filter.Nipple_filter())
+            #validator.add_filter(Wrong_nipples_filter.Wrong_nipples_filter())
 
             new_path = validator.validate(new_path)
-            print(len(new_path))
+            #print(len(new_path))
 
             file = open('readable_files.txt', 'x')
             create_number_file = open('create_number.txt', 'x')

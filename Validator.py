@@ -12,7 +12,7 @@ class Validator:
         while index < len(Path_list):
             DCM_Img = pydicom.read_file(Path_list[index])
 
-            print(index)
+            #print(index)
             flag = True
             for i in self.filter_list:
                 flag = i.validate(DCM_Img)
